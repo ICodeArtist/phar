@@ -4,25 +4,12 @@
       <div class="title">{{ timeFix }}，{{ user.name }}<span class="welcome-text">，{{ welcome }}</span></div>
     </div>
     <a-button type="primary" @click="chag()">切换</a-button>
-    <div slot="extra">
-      <a-row class="more-info">
-        <a-col :span="8">
-          <head-info title="项目" content="56" :center="false" :bordered="false"/>
-        </a-col>
-        <a-col :span="8">
-          <head-info title="团队排名" content="8/24" :center="false" :bordered="false"/>
-        </a-col>
-        <a-col :span="8">
-          <head-info title="项目数" content="2,223" :center="false" />
-        </a-col>
-      </a-row>
-    </div>
 
     <div>
       <a-card :bordered="false" v-if="type">
         <a-steps class="steps" :current="currentTab">
           <a-step title="填写基本信息" />
-          <a-step title="上传商户执照" />
+          <a-step title="上传证件" />
           <a-step title="完成" />
         </a-steps>
         <div class="content">
@@ -41,12 +28,8 @@
 <script>
 import { timeFix } from '@/utils/util'
 import { mapState } from 'vuex'
-
+import { getVerify } from '@/api/login'
 import { PageView } from '@/layouts'
-import HeadInfo from '@/components/tools/HeadInfo'
-import { Radar } from '@/components'
-
-import { getRoleList, getServiceList } from '@/api/manage'
 
 import Step1 from './stepForm/Step1'
 import Step2 from './stepForm/Step2'
@@ -56,8 +39,6 @@ export default {
   name: 'Workplace',
   components: {
     PageView,
-    HeadInfo,
-    Radar,
     Step1,
     Step2,
     Step3
@@ -68,7 +49,7 @@ export default {
       avatar: '',
       user: {},
       type: true,
-      currentTab: 0
+      currentTab: 3
     }
   },
   computed: {
@@ -83,17 +64,11 @@ export default {
   created () {
     this.user = this.userInfo
     this.avatar = this.userInfo.avatar
-
-    getRoleList().then(res => {
-      // console.log('workplace -> call getRoleList()', res)
-    })
-
-    getServiceList().then(res => {
-      // console.log('workplace -> call getServiceList()', res)
-    })
   },
   mounted () {
-
+    getVerify({ 'token': this.$store.getters.token }).then(res => {
+      this.currentTab = res.code == -1 || res.data.verifystep == 1?0:2
+    })
   },
   methods: {
     nextStep () {

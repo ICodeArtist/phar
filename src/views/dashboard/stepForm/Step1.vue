@@ -1,6 +1,6 @@
 <template>
   <div>
-    <a-form :form="form" style="max-width: 500px; margin: 5px auto 0;" @submit="handleSubmit">
+    <a-form :form="form" style="max-width: 500px; margin: 5px auto 0;">
       <a-form-item
         label="药店名称"
         :labelCol="labelCol"
@@ -219,7 +219,6 @@ export default {
           values.lng = this.lng
           values.lat = this.lat
           values.token = this.$store.getters.token
-          console.log(values)
           saveStep1(values).then(res => {
             if (res.code !== '0') {
               this.$notification['error']({
@@ -231,20 +230,6 @@ export default {
               this.$emit('nextStep')
             }
           })
-        }
-      })
-    },
-    handleSubmit (e) {
-      e.preventDefault()
-      if (this.lng === '') {
-        this.nomap = true
-        return
-      } else {
-        this.nomap = false
-      }
-      this.form.validateFields((err, values) => {
-        if (!err) {
-          console.log('Received values of form: ', values)
         }
       })
     },

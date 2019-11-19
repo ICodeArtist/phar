@@ -53,15 +53,7 @@ export function toRecover (parameter) {
     data: qs.stringify(parameter)
   })
 }
-export function getInfo () {
-  return axios({
-    url: '/user/info',
-    method: 'get',
-    headers: {
-      'Content-Type': 'application/json;charset=UTF-8'
-    }
-  })
-}
+
 
 export function getCurrentUserNav (token) {
   return axios({
@@ -92,6 +84,22 @@ export function get2step (parameter) {
   })
 }
 
+export function getVerify(parameter){
+  return axios({
+    url: '/phar/getVerify',
+    method: 'get',
+    params: parameter
+  })
+}
+
+export function getInfo (parameter) {
+  return axios({
+    url: '/phar/getAdminInfo',
+    method: 'get',
+    params: parameter
+  })
+}
+
 export function saveStep1 (parameter) {
   return axios({
     url: '/phar/saveStep1',
@@ -106,6 +114,33 @@ export function saveStep1 (parameter) {
 export function getStep1 (parameter) {
   return axios({
     url: '/phar/getStep1',
+    method: 'get',
+    params: parameter
+  })
+}
+
+export function saveStep2 (parameter) {
+  return axios({
+    url: '/phar/saveStep2',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    data: qs.stringify(parameter)
+  })
+}
+
+export function getStep2 (parameter) {
+  return axios({
+    url: '/phar/getStep2',
+    method: 'get',
+    params: parameter
+  })
+}
+
+export function getStep3 (parameter) {
+  return axios({
+    url: '/phar/getStep3',
     method: 'get',
     params: parameter
   })

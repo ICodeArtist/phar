@@ -55,9 +55,8 @@ const user = {
     // 获取用户信息
     GetInfo ({ commit }) {
       return new Promise((resolve, reject) => {
-        getInfo().then(response => {
-          const result = response.result
-
+        getInfo({token:Vue.ls.get(ACCESS_TOKEN)}).then(response => {
+          const result = response.data
           if (result.role && result.role.permissions.length > 0) {
             const role = result.role
             role.permissions = result.role.permissions

@@ -1,28 +1,9 @@
 <template>
   <div>
     <a-form style="margin: 40px auto 0;">
-      <result title="操作成功" :is-success="true" description="预计两小时内到账" style="max-width: 560px;">
-        <div class="information">
-          <a-row>
-            <a-col :sm="8" :xs="24">付款账户：</a-col>
-            <a-col :sm="16" :xs="24">ant-design@alipay.com</a-col>
-          </a-row>
-          <a-row>
-            <a-col :sm="8" :xs="24">收款账户：</a-col>
-            <a-col :sm="16" :xs="24">test@example.com</a-col>
-          </a-row>
-          <a-row>
-            <a-col :sm="8" :xs="24">收款人姓名：</a-col>
-            <a-col :sm="16" :xs="24">辉夜</a-col>
-          </a-row>
-          <a-row>
-            <a-col :sm="8" :xs="24">转账金额：</a-col>
-            <a-col :sm="16" :xs="24"><span class="money">500</span> 元</a-col>
-          </a-row>
-        </div>
-        <div slot="action">
-          <a-button type="primary" @click="finish">再转一笔</a-button>
-          <a-button style="margin-left: 8px" @click="toOrderList">查看账单</a-button>
+      <result :title="title" :type="restype" :description="description" style="max-width: 560px;">
+        <div slot="action" v-if="finishbutton">
+          <a-button type="primary" @click="finish">修改资料</a-button>
         </div>
       </result>
     </a-form>
@@ -31,7 +12,7 @@
 
 <script>
 import { Result } from '@/components'
-
+import { getStep3 } from '@/api/login'
 export default {
   name: 'Step3',
   components: {
@@ -39,15 +20,30 @@ export default {
   },
   data () {
     return {
-      loading: false
+      finishbutton: false,
+      restype: 'success',
+      title: '',
+      description: ''
     }
+  },
+  mounted () {
+    getStep3({ 'token': this.$store.getters.token }).then(res => {
+      if (res.data.verifystep === '2') {
+        this.title = '待审核'
+        this.description = '预计两天内审核完成'
+      } else if (res.data.verifystep === '3') {
+        this.title = '通过'
+      } else {
+        this.finishbutton = true
+        this.restype = 'error'
+        this.title = '不通过'
+        this.description = res.data.reason
+      }
+    })
   },
   methods: {
     finish () {
       this.$emit('finish')
-    },
-    toOrderList () {
-      this.$router.push('/list/table-list')
     }
   }
 }

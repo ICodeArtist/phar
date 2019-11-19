@@ -1,87 +1,232 @@
 <template>
   <div>
-    <a-form :form="form" style="max-width: 500px; margin: 40px auto 0;">
-      <a-alert
-        :closable="true"
-        message="确认转账后，资金将直接打入对方账户，无法退回。"
-        style="margin-bottom: 24px;"
-      />
-      <a-form-item
-        label="付款账户"
-        :labelCol="labelCol"
-        :wrapperCol="wrapperCol"
-        class="stepFormText"
-      >
-        ant-design@alipay.com
-      </a-form-item>
-      <a-form-item
-        label="收款账户"
-        :labelCol="labelCol"
-        :wrapperCol="wrapperCol"
-        class="stepFormText"
-      >
-        test@example.com
-      </a-form-item>
-      <a-form-item
-        label="收款人姓名"
-        :labelCol="labelCol"
-        :wrapperCol="wrapperCol"
-        class="stepFormText"
-      >
-        Alex
-      </a-form-item>
-      <a-form-item
-        label="转账金额"
-        :labelCol="labelCol"
-        :wrapperCol="wrapperCol"
-        class="stepFormText"
-      >
-        ￥ 5,000.00
-      </a-form-item>
-      <a-divider />
-      <a-form-item
-        label="支付密码"
-        :labelCol="labelCol"
-        :wrapperCol="wrapperCol"
-        class="stepFormText"
-      >
-        <a-input
-          type="password"
-          style="width: 80%;"
-          v-decorator="['paymentPassword', { initialValue: '123456', rules: [{required: true, message: '请输入支付密码'}] }]" />
-      </a-form-item>
-      <a-form-item :wrapperCol="{span: 19, offset: 5}">
-        <a-button :loading="loading" type="primary" @click="nextStep">提交</a-button>
-        <a-button style="margin-left: 8px" @click="prevStep">上一步</a-button>
-      </a-form-item>
-    </a-form>
+    <a-spin :spinning="spinning" tip="上传中...">
+      <a-form layout="vertical" :form="form" style="max-width: 500px; margin: 40px auto 0;">
+        <a-alert
+          :closable="true"
+          message="请确保您上传的证件真实有效"
+          style="margin-bottom: 24px;"
+          type="error"
+        />
+        <a-form-item
+          label="营业执照副本"
+          :labelCol="labelCol"
+          :wrapperCol="wrapperCol"
+          class="stepFormText"
+        >
+          <a-upload
+            v-decorator="['yyzz', { rules: [{required: true, message: '营业执照副本必填'}] }]"
+            accept="image/*"
+            name="file"
+            action="/api/index/uploadfile"
+            list-type="picture"
+            @change="handleChange"
+            :fileList="fileyyzz"
+          >
+            <a-button> <a-icon type="upload" /> 点击上传 </a-button>
+          </a-upload>
+        </a-form-item>
+        <a-form-item
+          label="药品经营许可证"
+          :labelCol="labelCol"
+          :wrapperCol="wrapperCol"
+          class="stepFormText"
+        >
+          <a-upload
+            v-decorator="['ypjyxkz', { rules: [{required: true, message: '药品经营许可证必填'}] }]"
+            accept="image/*"
+            name="file"
+            action="/api/index/uploadfile"
+            list-type="picture"
+            @change="handleChange2"
+            :fileList="fileypjyxkz"
+          >
+            <a-button> <a-icon type="upload" /> 点击上传 </a-button>
+          </a-upload>
+        </a-form-item>
+        <a-form-item
+          label="药品质量管理规范证书"
+          :labelCol="labelCol"
+          :wrapperCol="wrapperCol"
+          class="stepFormText"
+        >
+          <a-upload
+            v-decorator="['ypzlglgf', { rules: [{required: true, message: '药品质量管理规范证书必填'}] }]"
+            accept="image/*"
+            name="file"
+            action="/api/index/uploadfile"
+            list-type="picture"
+            @change="handleChange3"
+            :fileList="fileypzlglgf"
+          >
+            <a-button> <a-icon type="upload" /> 点击上传 </a-button>
+          </a-upload>
+        </a-form-item>
+        <a-divider />
+
+        <a-form-item :wrapperCol="{span: 19, offset: 5}">
+          <a-button :loading="loading" type="primary" @click="nextStep">提交</a-button>
+          <a-button style="margin-left: 8px" @click="prevStep">上一步</a-button>
+        </a-form-item>
+      </a-form>
+    </a-spin>
   </div>
 </template>
 
 <script>
+import { saveStep2, getStep2 } from '@/api/login'
 export default {
   name: 'Step2',
   data () {
     return {
-      labelCol: { lg: { span: 5 }, sm: { span: 5 } },
-      wrapperCol: { lg: { span: 19 }, sm: { span: 19 } },
+      // labelCol: { lg: { span: 5 }, sm: { span: 5 } },
+      // wrapperCol: { lg: { span: 19 }, sm: { span: 19 } },
+      labelCol: {},
+      wrapperCol: {},
       form: this.$form.createForm(this),
       loading: false,
-      timer: 0
+      timer: 0,
+      fileyyzz: [],
+      fileypjyxkz: [],
+      fileypzlglgf: [],
+      spinning: false
     }
   },
+  mounted () {
+    getStep2({ 'token': this.$store.getters.token }).then(res => {
+      this.fileyyzz.push(res.data.fileyyzz)
+      this.fileypjyxkz.push(res.data.fileypjyxkz)
+      this.fileypzlglgf.push(res.data.fileypzlglgf)
+    })
+  },
   methods: {
+    handleChange (info) {
+      this.gospinning(info)
+      if (info.fileList.length > 0) {
+        let fileyyzz = [...info.fileList]
+        let status = 0
+        // 1. Limit the number of uploaded files
+        //    Only to show two recent uploaded files, and old ones will be replaced by the new
+        fileyyzz = fileyyzz.slice(-1)
+        // 2. read from response and show file link
+        fileyyzz = fileyyzz.map(file => {
+          if (file.response) {
+            if (file.response.code !== '0') {
+              this.$message.error(`${file.response.msg}.`)
+              status = 1
+            } else {
+              file.url = file.response.data.yt
+            }
+          }
+          return file
+        })
+        this.fileyyzz = status === 1 ? [] : fileyyzz
+      } else {
+        this.fileyyzz = []
+      }
+    },
+    handleChange2 (info) {
+      this.gospinning(info)
+      if (info.fileList.length > 0) {
+        let fileypjyxkz = [...info.fileList]
+        let status = 0
+        // 1. Limit the number of uploaded files
+        //    Only to show two recent uploaded files, and old ones will be replaced by the new
+        fileypjyxkz = fileypjyxkz.slice(-1)
+        // 2. read from response and show file link
+        fileypjyxkz = fileypjyxkz.map(file => {
+          if (file.response) {
+            if (file.response.code !== '0') {
+              this.$message.error(`${file.response.msg}.`)
+              status = 1
+            } else {
+              file.url = file.response.data.yt
+            }
+          }
+          return file
+        })
+        this.fileypjyxkz = status === 1 ? [] : fileypjyxkz
+      } else {
+        this.fileypjyxkz = []
+      }
+    },
+    handleChange3 (info) {
+      this.gospinning(info)
+      if (info.fileList.length > 0) {
+        let fileypzlglgf = [...info.fileList]
+        let status = 0
+        // 1. Limit the number of uploaded files
+        //    Only to show two recent uploaded files, and old ones will be replaced by the new
+        fileypzlglgf = fileypzlglgf.slice(-1)
+        // 2. read from response and show file link
+        fileypzlglgf = fileypzlglgf.map(file => {
+          if (file.response) {
+            if (file.response.code !== '0') {
+              this.$message.error(`${file.response.msg}.`)
+              status = 1
+            } else {
+              file.url = file.response.data.yt
+            }
+          }
+          return file
+        })
+        this.fileypzlglgf = status === 1 ? [] : fileypzlglgf
+      } else {
+        this.fileypzlglgf = []
+      }
+    },
+    gospinning (info) {
+      if (info.file.status === 'uploading') { this.spinning = true }
+      if (info.file.status === 'done') { this.spinning = false }
+    },
     nextStep () {
       const that = this
+      console.log(this.fileyyzz)
+      if (this.fileyyzz.length < 1) {
+        this.form.setFieldsValue({
+          'yyzz': null
+        })
+      } else {
+        this.form.setFieldsValue({
+          'yyzz': this.fileyyzz[0].url
+        })
+      }
+      if (this.fileypjyxkz.length < 1) {
+        this.form.setFieldsValue({
+          'ypjyxkz': null
+        })
+      } else {
+        this.form.setFieldsValue({
+          'ypjyxkz': this.fileypjyxkz[0].url
+        })
+      }
+      if (this.fileypzlglgf.length < 1) {
+        this.form.setFieldsValue({
+          'ypzlglgf': null
+        })
+      } else {
+        this.form.setFieldsValue({
+          'ypzlglgf': this.fileypzlglgf[0].url
+        })
+      }
       const { form: { validateFields } } = this
       that.loading = true
       validateFields((err, values) => {
         if (!err) {
-          console.log('表单 values', values)
-          that.timer = setTimeout(function () {
+          values.token = this.$store.getters.token
+          saveStep2(values).then(res => {
+            if (res.code !== '0') {
+              this.$notification['error']({
+                message: '错误',
+                description: res.msg || '请求出现错误，请稍后再试',
+                duration: 4
+              })
+            } else {
+              this.$emit('nextStep')
+            }
+          }).finally(res => {
             that.loading = false
-            that.$emit('nextStep')
-          }, 1500)
+          })
         } else {
           that.loading = false
         }
@@ -100,11 +245,9 @@ export default {
 <style lang="less" scoped>
   .stepFormText {
     margin-bottom: 24px;
-
     .ant-form-item-label,
     .ant-form-item-control {
       line-height: 22px;
     }
   }
-
 </style>
