@@ -1,12 +1,10 @@
 <template>
   <page-view :avatar="avatar" :title="false">
     <div slot="headerContent">
-      <div class="title">{{ timeFix }}，{{ user.name }}<span class="welcome-text">，{{ welcome }}</span></div>
+      <div class="title">{{ timeFix }}，{{ user.name }}</div>
     </div>
-    <a-button type="primary" @click="chag()">切换</a-button>
-
     <div>
-      <a-card :bordered="false" v-if="type">
+      <a-card :bordered="false" v-if="verifypass == 0">
         <a-steps class="steps" :current="currentTab">
           <a-step title="填写基本信息" />
           <a-step title="上传证件" />
@@ -18,9 +16,9 @@
           <step3 v-if="currentTab === 2" @prevStep="prevStep" @finish="finish"/>
         </div>
       </a-card>
-      <a-card :bordered="false" v-if="!type">
-        <a-button type="primary">已经开店</a-button>
-      </a-card>
+      <div v-else style="font-size: 50px;text-align: center;margin-top: 20%;">
+        欢迎进入药店平台
+      </div>
     </div>
   </page-view>
 </template>
@@ -48,8 +46,8 @@ export default {
       timeFix: timeFix(),
       avatar: '',
       user: {},
-      type: true,
-      currentTab: 3
+      currentTab: 3,
+      verifypass: 0
     }
   },
   computed: {
@@ -67,7 +65,8 @@ export default {
   },
   mounted () {
     getVerify({ 'token': this.$store.getters.token }).then(res => {
-      this.currentTab = res.code == -1 || res.data.verifystep == 1?0:2
+      this.currentTab = res.code === '-1' || res.data.verifystep === '1' ? 0 : 2
+      this.verifypass = res.data.verifystep === '3' ? 1 : 0
     })
   },
   methods: {
@@ -83,9 +82,6 @@ export default {
     },
     finish () {
       this.currentTab = 0
-    },
-    chag () {
-      this.type = !this.type
     }
   }
 }

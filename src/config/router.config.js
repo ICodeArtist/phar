@@ -26,6 +26,21 @@ export const asyncRouterMap = [
             meta: { title: '工作台', keepAlive: true, permission: [ 'dashboard' ] }
           }
         ]
+      },
+      {
+        path: '/recipel',
+        name: 'recipel',
+        redirect: '/recipel/list',
+        component: RouteView,
+        meta: { title: '药房中心', keepAlive: true, icon: bxAnaalyse, permission: [ 'recipellist' ] },
+        children: [
+          {
+            path: '/recipel/list',
+            name: 'List',
+            component: () => import('@/views/recipel/List'),
+            meta: { title: '订单列表', keepAlive: true, permission: [ 'recipellist' ] }
+          }
+        ]
       }
     ]
   },
