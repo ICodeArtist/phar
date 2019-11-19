@@ -12,7 +12,7 @@
             <a-form-item label="订单状态">
               <a-select v-model="queryParam.status" placeholder="请选择" default-value="0">
                 <a-select-option value="-1">全部</a-select-option>
-                <a-select-option :value="index" v-for="(item,index) in orderstatus" :key="index">{{item}}</a-select-option>
+                <a-select-option :value="index" v-for="(item,index) in orderstatus" :key="index">{{ item }}</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
@@ -22,25 +22,14 @@
                 <a-input-number v-model="queryParam.doctorname" style="width: 100%" placeholder="输入医生姓名"/>
               </a-form-item>
             </a-col>
-            <a-col :md="5" :sm="24">
-              <a-form-item label="省">
-                <a-select v-model="queryParam.provinces" placeholder="请选择" default-value="0">
-                  <!-- <a-select-option :value="index" v-for="(item,index) in orderstatus" :key="index">{{item}}</a-select-option> -->
-                </a-select>
-              </a-form-item>
-            </a-col>
-            <a-col :md="5" :sm="24">
-              <a-form-item label="市">
-                <a-select v-model="queryParam.provinces" placeholder="请选择" default-value="0">
-                  <!-- <a-select-option :value="index" v-for="(item,index) in orderstatus" :key="index">{{item}}</a-select-option> -->
-                </a-select>
-              </a-form-item>
-            </a-col>
-            <a-col :md="6" :sm="24">
-              <a-form-item label="区">
-                <a-select v-model="queryParam.provinces" placeholder="请选择" default-value="0">
-                  <!-- <a-select-option :value="index" v-for="(item,index) in orderstatus" :key="index">{{item}}</a-select-option> -->
-                </a-select>
+            <a-col :md="8" :sm="24">
+              <a-form-item label="省/市/区">
+                <a-cascader
+                  :options="options"
+                  @change="onChange"
+                  changeOnSelect
+                  placeholder="请选择"
+                />
               </a-form-item>
             </a-col>
             <a-col :md="8" :sm="24">
@@ -71,14 +60,12 @@
     <s-table
       ref="table"
       size="default"
-      rowKey="key"
+      rowKey="id"
       :columns="columns"
       :data="loadData"
       showPagination="auto"
+      :scroll="{ x: 2000 }"
     >
-      <span slot="serial" slot-scope="text, record, index">
-        {{ index + 1 }}
-      </span>
       <span slot="status" slot-scope="text">
         <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
       </span>
@@ -100,7 +87,7 @@
 <script>
 import moment from 'moment'
 import { STable, Ellipsis } from '@/components'
-import { getRoleList, getServiceList } from '@/api/manage'
+import { getRecipelList, getPca } from '@/api/manage'
 
 const statusMap = {
   0: {
@@ -129,6 +116,7 @@ export default {
   },
   data () {
     return {
+      options: [],
       mdl: {},
       // 高级搜索 展开/关闭
       advanced: false,
@@ -139,51 +127,75 @@ export default {
       columns: [
         {
           title: '#',
-          scopedSlots: { customRender: 'serial' }
+          dataIndex: 'id',
+          width: 100
         },
         {
-          title: '规则编号',
-          dataIndex: 'no'
+          title: '患者姓名',
+          dataIndex: 'nickname',
+          width: 100
         },
         {
-          title: '描述',
-          dataIndex: 'description',
-          scopedSlots: { customRender: 'description' }
+          title: '医生姓名',
+          dataIndex: 'doctorname',
+          width: 200
         },
         {
-          title: '服务调用次数',
-          dataIndex: 'callNo',
-          sorter: true,
-          needTotal: true,
-          customRender: (text) => text + ' 次'
+          title: '病状',
+          dataIndex: 'illness',
+          width: 250
+        },
+        {
+          title: '类型',
+          dataIndex: 'type',
+          width: 100
+        },
+        {
+          title: '生活指导',
+          dataIndex: 'lifeguide',
+          width: 200
+        },
+        {
+          title: '注意事项',
+          dataIndex: 'careinfo',
+          width: 200
+        },
+        {
+          title: '总额',
+          dataIndex: 'amount',
+          customRender: (text) => text + '元',
+          width: 100
         },
         {
           title: '状态',
           dataIndex: 'status',
-          scopedSlots: { customRender: 'status' }
+          width: 200
         },
         {
-          title: '更新时间',
-          dataIndex: 'updatedAt',
-          sorter: true
+          title: '配送方式',
+          dataIndex: 'sendtype',
+          width: 200
+        },
+        {
+          title: '用药时间',
+          width: 150,
+          dataIndex: 'create_time'
         },
         {
           title: '操作',
           dataIndex: 'action',
-          width: '150px',
+          fixed: 'right',
+          width: 150,
           scopedSlots: { customRender: 'action' }
         }
       ],
       // 加载数据方法 必须为 Promise 对象
       loadData: parameter => {
-        console.log('loadData.parameter', parameter)
-        return getServiceList(Object.assign(parameter, this.queryParam))
+        return getRecipelList(Object.assign(parameter, this.queryParam))
           .then(res => {
-            return res.result
+            return res.data
           })
-      },
-      selectedRowKeys: [],
-      selectedRows: []
+      }
     }
   },
   filters: {
@@ -195,9 +207,16 @@ export default {
     }
   },
   created () {
-    getRoleList({ t: new Date() })
+    getPca({ 'pid': 0 }).then(res => {
+      this.options = res.data
+    })
   },
   methods: {
+    onChange (value) {
+      this.queryParam.province = value[0] || ''
+      this.queryParam.city = value[1] || ''
+      this.queryParam.area = value[2] || ''
+    },
     handleEdit (record) {
       console.log(record)
       this.$refs.modal.edit(record)

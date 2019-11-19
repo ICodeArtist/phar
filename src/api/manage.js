@@ -33,9 +33,9 @@ export function getRoleList (parameter) {
   })
 }
 
-export function getServiceList (parameter) {
+export function getRecipelList (parameter) {
   return axios({
-    url: api.service,
+    url: '/phar/recipellist',
     method: 'get',
     params: parameter
   })
