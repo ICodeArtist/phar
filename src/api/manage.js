@@ -1,5 +1,5 @@
 import { axios } from '@/utils/request'
-
+import qs from 'qs'
 const api = {
   user: '/user',
   role: '/role',
@@ -40,7 +40,16 @@ export function getRecipelList (parameter) {
     params: parameter
   })
 }
-
+export function saveRecipelPrice (parameter) {
+  return axios({
+    url: '/back/recipelprice',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    data: qs.stringify(parameter)
+  })
+}
 export function getPermissions (parameter) {
   return axios({
     url: api.permissionNoPager,

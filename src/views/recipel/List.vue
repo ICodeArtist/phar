@@ -94,10 +94,15 @@
         <p>{{ recipeldetail.drugguide[0].znum }}</p>
         <p>{{ recipeldetail.drugguide[0].userdo }}</p>
         <p>{{ recipeldetail.drugguide[0].price }}元</p>
-        <!-- <a-input-number :min="0" :max="10000" v-model="recipeldetail.drugguide[0].price" :disabled="recipeldetail.status == 2?false:true"/> -->
       </template>
     </a-modal>
-    <a-modal title="输入价格" v-model="visible" @ok="PriceEnter" okText="确认" cancelText="取消">
+    <a-modal
+      title="输入价格"
+      v-model="visible"
+      @ok="PriceEnter"
+      okText="确认"
+      cancelText="取消"
+      :confirmLoading="confirmLoading">
       <template v-if="recipeldetail.type == '1'">
         <p v-for="(item,index) in recipeldetail.drugguide" :key="index" >
           {{ item.name }}&nbsp;{{ item.spec }}&nbsp;{{ item.num }}{{ item.pack }}&nbsp;{{ item.userdo }}&nbsp;
@@ -120,8 +125,14 @@
         </p>
         <p>{{ recipeldetail.drugguide[0].znum }}</p>
         <p>{{ recipeldetail.drugguide[0].userdo }}</p>
-        <p>{{ recipeldetail.drugguide[0].price }}元</p>
-        <a-input-number :min="0" :max="10000" v-model="recipeldetail.drugguide[0].price" :disabled="recipeldetail.status == 2?false:true"/>
+        <a-input-number
+          :min="0"
+          :max="10000"
+          v-model="recipeldetail.drugguide[0].price"
+          :disabled="recipeldetail.status == 2?false:true"
+          :precision="2"
+          @change="getallamount"
+        />
       </template>
     </a-modal>
   </a-card>
@@ -129,7 +140,7 @@
 
 <script>
 import { STable, Ellipsis } from '@/components'
-import { getRecipelList, getPca } from '@/api/manage'
+import { getRecipelList, getPca, saveRecipelPrice } from '@/api/manage'
 
 const statusMap = {
   0: {
@@ -168,6 +179,7 @@ export default {
       // 输入价格
       visible: false,
       allamount: 0,
+      confirmLoading: false,
       // 高级搜索 展开/关闭
       advanced: false,
       // 查询参数
@@ -278,7 +290,6 @@ export default {
     },
     handleDetail (record) {
       this.infovisible = true
-      console.log(record)
       this.recipeldetail = record
     },
     handleEnterPrice (record) {
@@ -290,16 +301,26 @@ export default {
       } else {
         this.recipeldetail = record
         this.visible = true
-        this.etprible = true
       }
     },
     PriceEnter () {
-      console.log(this.recipeldetail)
       const items = {
         recid: this.recipeldetail.recid,
         info: this.recipeldetail.drugguide,
         amount: this.allamount
       }
+      this.confirmLoading = true
+      saveRecipelPrice(items).then(res => {
+        if (res.code === '0') {
+          this.$message.success('成功', 1)
+          this.$refs.table.refresh(true)
+          this.visible = false
+          this.confirmLoading = false
+        } else {
+          this.$message.success('错误', 1)
+          this.confirmLoading = false
+        }
+      })
     },
     handleSend (record) {
       if (record.status !== '4') {
