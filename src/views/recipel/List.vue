@@ -19,7 +19,7 @@
           <template v-if="advanced">
             <a-col :md="8" :sm="24">
               <a-form-item label="医生姓名">
-                <a-input-number v-model="queryParam.doctorname" style="width: 100%" placeholder="输入医生姓名"/>
+                <a-input v-model="queryParam.doctorname" placeholder="输入医生姓名"/>
               </a-form-item>
             </a-col>
             <a-col :md="8" :sm="24">
@@ -35,10 +35,7 @@
             <a-col :md="8" :sm="24">
               <a-form-item label="订单类型">
                 <a-select v-model="queryParam.type" placeholder="请选择" default-value="0">
-                  <a-select-option value="0">全部</a-select-option>
-                  <a-select-option value="1">中西成药</a-select-option>
-                  <a-select-option value="2">饮片</a-select-option>
-                  <a-select-option value="3">中药配方颗粒</a-select-option>
+                  <a-select-option :value="index" v-for="(item,index) in ordertype" :key="index">{{ item }}</a-select-option>
                 </a-select>
               </a-form-item>
             </a-col>
@@ -64,7 +61,7 @@
       :columns="columns"
       :data="loadData"
       showPagination="auto"
-      :scroll="{ x: 2000 }"
+      :scroll="{ x: 1800 }"
     >
       <span slot="status" slot-scope="text">
         <a-badge :status="text | statusTypeFilter" :text="text | statusFilter" />
@@ -75,17 +72,62 @@
 
       <span slot="action" slot-scope="text, record">
         <template>
-          <a @click="handleEdit(record)">配置</a>
+          <a @click="handleDetail(record)">药品</a>
           <a-divider type="vertical" />
-          <a @click="handleSub(record)">订阅报警</a>
+          <a @click="handleEnterPrice(record)">输入价格</a>
+          <a-divider type="vertical" />
+          <a @click="handleSend(record)">发货</a>
+          <!-- <a v-if="record.status === '2'" @click="handleEdit(record)">输入价格</a> -->
+          <!-- <a-divider type="vertical" /> -->
+          <!-- <a v-if="record.status === '4'" @click="handleSub(record)">发货</a> -->
         </template>
       </span>
     </s-table>
+    <a-modal title="药品信息" v-model="infovisible" @ok="hideModal" okText="确认" cancelText="取消">
+      <p v-for="(item,index) in recipeldetail.drugguide" :key="index" v-if="recipeldetail.type == '1'">
+        {{ item.name }}&nbsp;{{ item.spec }}&nbsp;{{ item.num }}{{ item.pack }}&nbsp;{{ item.userdo }}&nbsp;{{ item.price }}元
+      </p>
+      <template v-else>
+        <p v-for="(item,index) in recipeldetail.drugguide[0].pers.split('|')" :key="index">
+          {{ item }}
+        </p>
+        <p>{{ recipeldetail.drugguide[0].znum }}</p>
+        <p>{{ recipeldetail.drugguide[0].userdo }}</p>
+        <p>{{ recipeldetail.drugguide[0].price }}元</p>
+        <!-- <a-input-number :min="0" :max="10000" v-model="recipeldetail.drugguide[0].price" :disabled="recipeldetail.status == 2?false:true"/> -->
+      </template>
+    </a-modal>
+    <a-modal title="输入价格" v-model="visible" @ok="PriceEnter" okText="确认" cancelText="取消">
+      <template v-if="recipeldetail.type == '1'">
+        <p v-for="(item,index) in recipeldetail.drugguide" :key="index" >
+          {{ item.name }}&nbsp;{{ item.spec }}&nbsp;{{ item.num }}{{ item.pack }}&nbsp;{{ item.userdo }}&nbsp;
+          <span style="float: right;">
+            <a-input-number
+              :min="0"
+              :max="10000"
+              v-model="item.price"
+              :disabled="recipeldetail.status == 2?false:true"
+              :precision="2"
+              @change="getallamount"
+            />元
+          </span>
+        </p>
+        <p>总价{{ allamount }}</p>
+      </template>
+      <template v-else-if="recipeldetail.drugguide instanceof Array">
+        <p v-for="(item,index) in recipeldetail.drugguide[0].pers.split('|')" :key="index" >
+          {{ item }}
+        </p>
+        <p>{{ recipeldetail.drugguide[0].znum }}</p>
+        <p>{{ recipeldetail.drugguide[0].userdo }}</p>
+        <p>{{ recipeldetail.drugguide[0].price }}元</p>
+        <a-input-number :min="0" :max="10000" v-model="recipeldetail.drugguide[0].price" :disabled="recipeldetail.status == 2?false:true"/>
+      </template>
+    </a-modal>
   </a-card>
 </template>
 
 <script>
-import moment from 'moment'
 import { STable, Ellipsis } from '@/components'
 import { getRecipelList, getPca } from '@/api/manage'
 
@@ -107,7 +149,9 @@ const statusMap = {
     text: '异常'
   }
 }
-
+const sendtype = ['药店配送', '自提']
+const ordertype = ['全部', '中西成药', '饮片', '中药配方颗粒']
+const orderstatus = ['待完善信息', '已完善待药师审核', '已审核待输入价格', '待用户支付', '已支付待发货', '已发货', '已完成', '已取消', '待医生完善']
 export default {
   name: 'TableList',
   components: {
@@ -116,13 +160,20 @@ export default {
   },
   data () {
     return {
+      // 省市区
       options: [],
-      mdl: {},
+      // 药品信息
+      recipeldetail: [],
+      infovisible: false,
+      // 输入价格
+      visible: false,
+      allamount: 0,
       // 高级搜索 展开/关闭
       advanced: false,
       // 查询参数
       queryParam: {},
-      orderstatus: ['待完善信息', '已完善待药师审核', '已审核待输入价格', '待用户支付', '已支付待发货', '已发货', '已完成', '已取消', '待医生完善'],
+      orderstatus: orderstatus,
+      ordertype: ordertype,
       // 表头
       columns: [
         {
@@ -138,16 +189,17 @@ export default {
         {
           title: '医生姓名',
           dataIndex: 'doctorname',
-          width: 200
+          width: 100
         },
         {
           title: '病状',
           dataIndex: 'illness',
-          width: 250
+          width: 200
         },
         {
           title: '类型',
           dataIndex: 'type',
+          customRender: (text) => ordertype[text],
           width: 100
         },
         {
@@ -169,28 +221,31 @@ export default {
         {
           title: '状态',
           dataIndex: 'status',
-          width: 200
+          customRender: (text) => orderstatus[text],
+          width: 150
         },
         {
           title: '配送方式',
           dataIndex: 'sendtype',
-          width: 200
+          customRender: (text) => sendtype[text - 1],
+          width: 100
         },
         {
           title: '用药时间',
-          width: 150,
+          width: 200,
           dataIndex: 'create_time'
         },
         {
           title: '操作',
           dataIndex: 'action',
           fixed: 'right',
-          width: 150,
+          width: 200,
           scopedSlots: { customRender: 'action' }
         }
       ],
       // 加载数据方法 必须为 Promise 对象
       loadData: parameter => {
+        parameter.token = this.$store.getters.token
         return getRecipelList(Object.assign(parameter, this.queryParam))
           .then(res => {
             return res.data
@@ -212,29 +267,62 @@ export default {
     })
   },
   methods: {
+    hideModal () {
+      this.infovisible = false
+      this.$refs.table.refresh(true)
+    },
     onChange (value) {
       this.queryParam.province = value[0] || ''
       this.queryParam.city = value[1] || ''
       this.queryParam.area = value[2] || ''
     },
-    handleEdit (record) {
+    handleDetail (record) {
+      this.infovisible = true
       console.log(record)
-      this.$refs.modal.edit(record)
+      this.recipeldetail = record
     },
-    handleSub (record) {
-      if (record.status !== 0) {
-        this.$message.info(`${record.no} 订阅成功`)
+    handleEnterPrice (record) {
+      if (record.status !== '2') {
+        this.$error({
+          title: '提醒',
+          content: '当前订单状态不能输入价格'
+        })
       } else {
-        this.$message.error(`${record.no} 订阅失败，规则已关闭`)
+        this.recipeldetail = record
+        this.visible = true
+        this.etprible = true
+      }
+    },
+    PriceEnter () {
+      console.log(this.recipeldetail)
+      const items = {
+        recid: this.recipeldetail.recid,
+        info: this.recipeldetail.drugguide,
+        amount: this.allamount
+      }
+    },
+    handleSend (record) {
+      if (record.status !== '4') {
+        this.$error({
+          title: '提醒',
+          content: '当前订单状态不能发货'
+        })
+      } else {
+
       }
     },
     toggleAdvanced () {
       this.advanced = !this.advanced
     },
     resetSearchForm () {
-      this.queryParam = {
-        date: moment(new Date())
-      }
+      this.queryParam = {}
+    },
+    getallamount () {
+      let a = 0
+      this.recipeldetail.drugguide.forEach(element => {
+        a += Number(element.price)
+      })
+      this.allamount = a.toFixed(2)
     }
   }
 }
