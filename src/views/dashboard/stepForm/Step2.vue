@@ -62,6 +62,42 @@
             <a-button> <a-icon type="upload" /> 点击上传 </a-button>
           </a-upload>
         </a-form-item>
+        <a-form-item
+          label="医疗器械经营许可证"
+          :labelCol="labelCol"
+          :wrapperCol="wrapperCol"
+          class="stepFormText"
+        >
+          <a-upload
+            v-decorator="['ylqx']"
+            accept="image/*"
+            name="file"
+            action="https://askapp.wxori.top/index/uploadfile"
+            list-type="picture"
+            @change="handleChange4"
+            :fileList="fileylqx"
+          >
+            <a-button> <a-icon type="upload" /> 点击上传 </a-button>
+          </a-upload>
+        </a-form-item>
+        <a-form-item
+          label="食品经营许可证"
+          :labelCol="labelCol"
+          :wrapperCol="wrapperCol"
+          class="stepFormText"
+        >
+          <a-upload
+            v-decorator="['spjy']"
+            accept="image/*"
+            name="file"
+            action="https://askapp.wxori.top/index/uploadfile"
+            list-type="picture"
+            @change="handleChange5"
+            :fileList="filespjy"
+          >
+            <a-button> <a-icon type="upload" /> 点击上传 </a-button>
+          </a-upload>
+        </a-form-item>
         <a-divider />
 
         <a-form-item :wrapperCol="{span: 19, offset: 5}">
@@ -89,6 +125,8 @@ export default {
       fileyyzz: [],
       fileypjyxkz: [],
       fileypzlglgf: [],
+      fileylqx: [],
+      filespjy: [],
       spinning: false
     }
   },
@@ -97,6 +135,8 @@ export default {
       this.fileyyzz.push(res.data.fileyyzz)
       this.fileypjyxkz.push(res.data.fileypjyxkz)
       this.fileypzlglgf.push(res.data.fileypzlglgf)
+      res.data.fileylqx.url !== '' && this.fileylqx.push(res.data.fileylqx)
+      res.data.filespjy.url !== '' && this.filespjy.push(res.data.filespjy)
     })
   },
   methods: {
@@ -175,6 +215,56 @@ export default {
         this.fileypzlglgf = []
       }
     },
+    handleChange4 (info) {
+      this.gospinning(info)
+      if (info.fileList.length > 0) {
+        let fileylqx = [...info.fileList]
+        let status = 0
+        // 1. Limit the number of uploaded files
+        //    Only to show two recent uploaded files, and old ones will be replaced by the new
+        fileylqx = fileylqx.slice(-1)
+        // 2. read from response and show file link
+        fileylqx = fileylqx.map(file => {
+          if (file.response) {
+            if (file.response.code !== '0') {
+              this.$message.error(`${file.response.msg}.`)
+              status = 1
+            } else {
+              file.url = file.response.data.yt
+            }
+          }
+          return file
+        })
+        this.fileylqx = status === 1 ? [] : fileylqx
+      } else {
+        this.fileylqx = []
+      }
+    },
+    handleChange5 (info) {
+      this.gospinning(info)
+      if (info.fileList.length > 0) {
+        let filespjy = [...info.fileList]
+        let status = 0
+        // 1. Limit the number of uploaded files
+        //    Only to show two recent uploaded files, and old ones will be replaced by the new
+        filespjy = filespjy.slice(-1)
+        // 2. read from response and show file link
+        filespjy = filespjy.map(file => {
+          if (file.response) {
+            if (file.response.code !== '0') {
+              this.$message.error(`${file.response.msg}.`)
+              status = 1
+            } else {
+              file.url = file.response.data.yt
+            }
+          }
+          return file
+        })
+        this.filespjy = status === 1 ? [] : filespjy
+      } else {
+        this.filespjy = []
+      }
+    },
     gospinning (info) {
       if (info.file.status === 'uploading') { this.spinning = true }
       if (info.file.status === 'done') { this.spinning = false }
@@ -207,6 +297,24 @@ export default {
       } else {
         this.form.setFieldsValue({
           'ypzlglgf': this.fileypzlglgf[0].url
+        })
+      }
+      if (this.fileylqx.length < 1) {
+        this.form.setFieldsValue({
+          'ylqx': null
+        })
+      } else {
+        this.form.setFieldsValue({
+          'ylqx': this.fileylqx[0].url
+        })
+      }
+      if (this.filespjy.length < 1) {
+        this.form.setFieldsValue({
+          'spjy': null
+        })
+      } else {
+        this.form.setFieldsValue({
+          'spjy': this.filespjy[0].url
         })
       }
       const { form: { validateFields } } = this
