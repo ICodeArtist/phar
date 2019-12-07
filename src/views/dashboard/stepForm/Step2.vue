@@ -14,6 +14,7 @@
           :wrapperCol="wrapperCol"
           class="stepFormText"
         >
+		<img style="height: 150px;" alt="example" src="https://askyisheng.oss-cn-hangzhou.aliyuncs.com/yyzz.jpeg" />
           <a-upload
             v-decorator="['yyzz', { rules: [{required: true, message: '营业执照副本必填'}] }]"
             accept="image/*"
@@ -32,6 +33,7 @@
           :wrapperCol="wrapperCol"
           class="stepFormText"
         >
+        <img style="height: 150px;" alt="example" src="https://askyisheng.oss-cn-hangzhou.aliyuncs.com/ypjyxkz.jpeg" />
           <a-upload
             v-decorator="['ypjyxkz', { rules: [{required: true, message: '药品经营许可证必填'}] }]"
             accept="image/*"
@@ -50,6 +52,7 @@
           :wrapperCol="wrapperCol"
           class="stepFormText"
         >
+        <img style="height: 150px;" alt="example" src="https://askyisheng.oss-cn-hangzhou.aliyuncs.com/ypzlglgf.jpg" />
           <a-upload
             v-decorator="['ypzlglgf', { rules: [{required: true, message: '药品质量管理规范证书必填'}] }]"
             accept="image/*"
@@ -68,6 +71,7 @@
           :wrapperCol="wrapperCol"
           class="stepFormText"
         >
+        <img style="height: 150px;" alt="example" src="https://askyisheng.oss-cn-hangzhou.aliyuncs.com/ylqxjyxk.jpg" />
           <a-upload
             v-decorator="['ylqx']"
             accept="image/*"
@@ -86,6 +90,7 @@
           :wrapperCol="wrapperCol"
           class="stepFormText"
         >
+        <img style="height: 150px;" alt="example" src="https://askyisheng.oss-cn-hangzhou.aliyuncs.com/spjyxk.jpg" />
           <a-upload
             v-decorator="['spjy']"
             accept="image/*"
