@@ -8,7 +8,7 @@
           </a>
         </div>
         <div class="desc">
-          让你的医药事业腾飞
+          让您的医药事业腾飞
         </div>
       </div>
 
