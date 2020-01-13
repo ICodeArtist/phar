@@ -77,7 +77,7 @@
           <a @click="handleEnterPrice(record)">输入价格</a>
           <a-divider type="vertical" />
           <a @click="handleSend(record)">发货</a>
-          <!-- <a v-if="record.status === '2'" @click="handleEdit(record)">输入价格</a> -->
+          <a @click="gozd(record)">查看咨询指导意见</a>
           <!-- <a-divider type="vertical" /> -->
           <!-- <a v-if="record.status === '4'" @click="handleSub(record)">发货</a> -->
         </template>
@@ -344,6 +344,10 @@ export default {
         a += Number(element.price)
       })
       this.allamount = a.toFixed(2)
+    },
+    gozd (record){
+      const href = 'https://askapp.cloudhos.net/page/recipel/zdyj.html?recid=' + record.id
+      window.open(href, '_blank')
     }
   }
 }
