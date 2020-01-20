@@ -117,7 +117,7 @@
             />元
           </span>
         </p>
-        <p>总价{{ allamount }}</p>
+        
       </template>
       <template v-else-if="recipeldetail.drugguide instanceof Array">
         <p v-for="(item,index) in recipeldetail.drugguide[0].pers.split('|')" :key="index" >
@@ -134,6 +134,18 @@
           @change="getallamount"
         />
       </template>
+	  <p>
+		快递费
+		<a-input-number
+		  :min="0"
+		  :max="50"
+		  v-model="express_fee"
+		  :disabled="recipeldetail.status == 2?false:true"
+		  :precision="2"
+		  @change="getallamount"
+		/>
+	  </p>
+    <p>总价{{ allamount }}</p>
     </a-modal>
   </a-card>
 </template>
@@ -171,6 +183,8 @@ export default {
   },
   data () {
     return {
+	  //
+	  express_fee: 0,
       // 省市区
       options: [],
       // 药品信息
@@ -307,7 +321,8 @@ export default {
       const items = {
         recid: this.recipeldetail.recid,
         info: this.recipeldetail.drugguide,
-        amount: this.allamount
+        amount: this.allamount,
+        express_fee: this.express_fee.toFixed(2)
       }
       this.confirmLoading = true
       saveRecipelPrice(items).then(res => {
@@ -343,6 +358,7 @@ export default {
       this.recipeldetail.drugguide.forEach(element => {
         a += Number(element.price)
       })
+      a += this.express_fee;
       this.allamount = a.toFixed(2)
     },
     gozd (record){
