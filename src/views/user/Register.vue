@@ -6,6 +6,14 @@
         <a-input
           size="large"
           type="text"
+          placeholder="药师姓名"
+          v-decorator="['username', {rules: [{ required: true, message: '请输入药师姓名' }], validateTrigger: ['change', 'blur']}]"
+        ></a-input>
+      </a-form-item>
+      <a-form-item>
+        <a-input
+          size="large"
+          type="text"
           placeholder="邮箱"
           v-decorator="['email', {rules: [{ required: true, type: 'email', message: '请输入邮箱地址' }], validateTrigger: ['change', 'blur']}]"
         ></a-input>

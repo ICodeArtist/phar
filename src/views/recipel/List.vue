@@ -117,7 +117,7 @@
             />元
           </span>
         </p>
-        
+
       </template>
       <template v-else-if="recipeldetail.drugguide instanceof Array">
         <p v-for="(item,index) in recipeldetail.drugguide[0].pers.split('|')" :key="index" >
@@ -134,18 +134,18 @@
           @change="getallamount"
         />
       </template>
-	  <p>
-		快递费
-		<a-input-number
-		  :min="0"
-		  :max="50"
-		  v-model="express_fee"
-		  :disabled="recipeldetail.status == 2?false:true"
-		  :precision="2"
-		  @change="getallamount"
-		/>
-	  </p>
-    <p>总价{{ allamount }}</p>
+      <p>
+        快递费
+        <a-input-number
+          :min="0"
+          :max="50"
+          v-model="express_fee"
+          :disabled="recipeldetail.status == 2?false:true"
+          :precision="2"
+          @change="getallamount"
+        />
+      </p>
+      <p>总价{{ allamount }}</p>
     </a-modal>
   </a-card>
 </template>
@@ -319,6 +319,7 @@ export default {
     },
     PriceEnter () {
       const items = {
+        pharphst: this.$store.getters.userInfo.name,
         recid: this.recipeldetail.recid,
         info: this.recipeldetail.drugguide,
         amount: this.allamount,
@@ -358,10 +359,10 @@ export default {
       this.recipeldetail.drugguide.forEach(element => {
         a += Number(element.price)
       })
-      a += this.express_fee;
+      a += this.express_fee
       this.allamount = a.toFixed(2)
     },
-    gozd (record){
+    gozd (record) {
       const href = 'https://askapp.cloudhos.net/page/recipel/zdyj.html?recid=' + record.id
       window.open(href, '_blank')
     }
