@@ -20,30 +20,19 @@
         :labelCol="labelCol"
         :wrapperCol="wrapperCol"
       >
-        <a-checkbox
+        <a-radio-group
           v-decorator="[
-            'ifzxy',
+            'phartype',
             {
-              'initialValue':false,
-              valuePropName: 'checked',
-              checked: false
-            },
-          ]"
-        >
-          中西成药
-        </a-checkbox>
-        <a-checkbox
-          v-decorator="[
-            'ifzy',
-            {
-              'initialValue':false,
-              valuePropName: 'checked',
-              checked: false
-            },
-          ]"
-        >
-          饮片
-        </a-checkbox>
+              'initialValue':'1'
+            },]">
+          <a-radio value="1">
+            中西成药
+          </a-radio>
+          <a-radio value="2">
+            饮片
+          </a-radio>
+        </a-radio-group>
       </a-form-item>
       <a-form-item
         label="快递"
@@ -187,8 +176,7 @@ export default {
         const data = res.data
         this.form.setFieldsValue({ 'name': data.name })
         this.form.setFieldsValue({ 'tel': data.tel })
-        this.form.setFieldsValue({ 'ifzxy': data.ifzxy === '1' })
-        this.form.setFieldsValue({ 'ifzy': data.ifzy === '1' })
+        this.form.setFieldsValue({ 'phartype': data.ifzxy === '1' ? '1' : '2' })
         this.form.setFieldsValue({ 'ifintracity': data.ifintracity === '1' })
         this.form.setFieldsValue({ 'ifexpress': data.ifexpress === '1' })
         this.defpca = [data.province, data.city, data.area]
