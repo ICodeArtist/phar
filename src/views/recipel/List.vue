@@ -269,6 +269,16 @@ export default {
           width: 100
         },
         {
+          title: '快递',
+          dataIndex: 'fhkd',
+          width: 100
+        },
+        {
+          title: '快递单号',
+          dataIndex: 'fhdh',
+          width: 100
+        },
+        {
           title: '用药时间',
           width: 200,
           dataIndex: 'create_time'
