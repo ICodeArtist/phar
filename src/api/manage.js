@@ -50,6 +50,18 @@ export function saveRecipelPrice (parameter) {
     data: qs.stringify(parameter)
   })
 }
+
+export function sendout (parameter) {
+  return axios({
+    url: '/phar/sendout',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    data: qs.stringify(parameter)
+  })
+}
+
 export function getPermissions (parameter) {
   return axios({
     url: api.permissionNoPager,

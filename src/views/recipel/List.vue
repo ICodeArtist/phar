@@ -77,12 +77,17 @@
           <a @click="handleEnterPrice(record)">输入价格</a>
           <a-divider type="vertical" />
           <a @click="handleSend(record)">发货</a>
+          <a-divider type="vertical" />
           <a @click="gozd(record)">查看咨询指导意见</a>
-          <!-- <a-divider type="vertical" /> -->
-          <!-- <a v-if="record.status === '4'" @click="handleSub(record)">发货</a> -->
+          <a-divider type="vertical" />
+          <a @click="gocfj(record)">查看处方笺</a>
         </template>
       </span>
     </s-table>
+    <a-modal title="发货信息" v-model="fhvisible" @ok="fhOk">
+      <a-input addonBefore="快递名称" size="large" v-model="fhkd" style="margin-bottom: 16px" />
+      <a-input addonBefore="快递单号" size="large" v-model="fhdh"/>
+    </a-modal>
     <a-modal title="药品信息" v-model="infovisible" @ok="hideModal" okText="确认" cancelText="取消">
       <p v-for="(item,index) in recipeldetail.drugguide" :key="index" v-if="recipeldetail.type == '1'">
         {{ item.name }}&nbsp;{{ item.spec }}&nbsp;{{ item.num }}{{ item.pack }}&nbsp;{{ item.userdo }}&nbsp;{{ item.price }}元
@@ -152,7 +157,7 @@
 
 <script>
 import { STable, Ellipsis } from '@/components'
-import { getRecipelList, getPca, saveRecipelPrice } from '@/api/manage'
+import { getRecipelList, getPca, saveRecipelPrice, sendout } from '@/api/manage'
 
 const statusMap = {
   0: {
@@ -183,8 +188,11 @@ export default {
   },
   data () {
     return {
-	  //
-	  express_fee: 0,
+      // 发货信息
+      fhvisible: false,
+      fhkd: '',
+      fhdh: '',
+      express_fee: 0,
       // 省市区
       options: [],
       // 药品信息
@@ -224,8 +232,7 @@ export default {
         },
         {
           title: '类型',
-          dataIndex: 'type',
-          customRender: (text) => ordertype[text],
+          dataIndex: 'tisanetype',
           width: 100
         },
         {
@@ -345,8 +352,45 @@ export default {
           content: '当前订单状态不能发货'
         })
       } else {
-
+        this.recipeldetail = record
+        this.fhkd = ''
+        this.fhdh = ''
+        this.fhvisible = true
       }
+    },
+    fhOk () {
+      if (this.fhkd === '') {
+        this.$error({
+          title: '提醒',
+          content: '快递名称必填'
+        })
+        return false
+      }
+      if (this.fhdh === '') {
+        this.$error({
+          title: '提醒',
+          content: '快递单号必填'
+        })
+        return false
+      }
+      const items = {
+        recid: this.recipeldetail.recid,
+        fhkd: this.fhkd,
+        fhdh: this.fhdh
+      }
+      this.confirmLoading = true
+      sendout(items).then(res => {
+        if (res.code === '0') {
+          this.$message.success('提交成功', 1)
+          this.$refs.table.refresh(true)
+          this.fhvisible = false
+          this.confirmLoading = false
+        } else {
+          this.$message.success('错误', 1)
+          this.confirmLoading = false
+        }
+      })
+      this.fhvisible = false
     },
     toggleAdvanced () {
       this.advanced = !this.advanced
@@ -364,6 +408,10 @@ export default {
     },
     gozd (record) {
       const href = 'https://askapp.cloudhos.net/page/recipel/zdyj.html?recid=' + record.id
+      window.open(href, '_blank')
+    },
+    gocfj (record) {
+      const href = 'https://askapp.cloudhos.net/page/recipel/cfj.html?recid=' + record.id
       window.open(href, '_blank')
     }
   }
