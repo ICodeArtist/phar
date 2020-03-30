@@ -62,6 +62,17 @@ export function sendout (parameter) {
   })
 }
 
+export function refund (parameter) {
+  return axios({
+    url: '/phar/refund',
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    data: qs.stringify(parameter)
+  })
+}
+
 export function getPermissions (parameter) {
   return axios({
     url: api.permissionNoPager,

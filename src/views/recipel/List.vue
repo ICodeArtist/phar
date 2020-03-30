@@ -81,6 +81,8 @@
           <a @click="gozd(record)">查看咨询指导意见</a>
           <a-divider type="vertical" />
           <a @click="gocfj(record)">查看处方笺</a>
+          <a-divider type="vertical" />
+          <a @click="refound(record)">退款</a>
         </template>
       </span>
     </s-table>
@@ -157,7 +159,7 @@
 
 <script>
 import { STable, Ellipsis } from '@/components'
-import { getRecipelList, getPca, saveRecipelPrice, sendout } from '@/api/manage'
+import { getRecipelList, getPca, saveRecipelPrice, sendout, refund } from '@/api/manage'
 
 const statusMap = {
   0: {
@@ -179,7 +181,7 @@ const statusMap = {
 }
 const sendtype = ['药店配送', '自提']
 const ordertype = ['全部', '中西成药', '饮片', '中药配方颗粒']
-const orderstatus = ['待完善信息', '已完善待药师审核', '已审核待输入价格', '待用户支付', '已支付待发货', '已发货', '已完成', '已取消', '待医生完善']
+const orderstatus = ['待完善信息', '已完善待药师审核', '已审核待输入价格', '待用户支付', '已支付待发货', '已发货', '已完成', '已取消', '待医生完善','已退款']
 export default {
   name: 'TableList',
   components: {
@@ -428,6 +430,34 @@ export default {
     gocfj (record) {
       const href = 'https://askapp.cloudhos.net/page/recipel/cfj.html?recid=' + record.id
       window.open(href, '_blank')
+    },
+    refound (record) {
+      if (record.status !== '5') {
+        this.$error({
+          title: '提醒',
+          content: '当前订单状态不能退款'
+        })
+      } else {
+        var that = this
+       this.$confirm({
+         title: '退款提醒',
+         content: '确定退款给用户吗？',
+         onOk() {
+           const items = {
+             recid: record.recid
+           }
+           refund(items).then(res => {
+             if (res.code === '0') {
+               that.$message.success('退款成功', 1);
+               that.$refs.table.refresh(true)
+             } else {
+               that.$message.error(res.msg, 2)
+             }
+           })
+         },
+         onCancel() {},
+       });
+      }
     }
   }
 }
